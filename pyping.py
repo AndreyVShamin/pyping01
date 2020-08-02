@@ -2,7 +2,7 @@
 
 """
 Add to crontab as root: */1 * * * * /home/andrey/pythonping/pyping.py
-
+Shared by hard link by nfs: ln /home/andrey/pythonping/pyping.db /mnt/nfs/pyping.db
 """
 
 
