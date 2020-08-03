@@ -13,7 +13,7 @@ import sqlite3
 import time
 
 db = '/home/andrey/pythonping/pyping.db'
-num = 15
+num = 10
 timeout = 2000
 addr=('1.2.3.4',
     'ash.ru.net',
@@ -29,6 +29,7 @@ sql = """CREATE TABLE IF NOT EXISTS ping
                      (id  integer primary key,
                      addr text not null,
                      success integer not null,
+                     unsuccess integer not null default 0,
                      percent integer not null,
                      minms integer not null,
                      maxms integer not null,
@@ -42,16 +43,28 @@ for a in addr:
     rl = ping (a, size=40, count=num, verbose=False)
     s = 0
     success = False
+
     for r in rl:
         if r.success:
             s += 1
             success = True
+
+    if success:
+        unsuccess = 0
+    else:
+        try:
+            sql = f"SELECT unsuccess FROM ping WHERE addr='{a}' ORDER BY id DESC LIMIT 1"
+            cursor.execute(sql)
+            unsuccess = cursor.fetchone()[0] + 1
+        except:
+            unsuccess = 0
+
     percent = int(100*s/num)
     success = int(success)
     minms = int(rl.rtt_min_ms)
     maxms = int(rl.rtt_max_ms)
     ut = int(time.time())
-    sql = f"INSERT INTO ping (addr,success,percent,minms,maxms,unixtime) VALUES ('{a}',{success},{percent},{minms},{maxms},{ut})"
+    sql = f"INSERT INTO ping (addr,success,unsuccess,percent,minms,maxms,unixtime) VALUES ('{a}',{success},{unsuccess},{percent},{minms},{maxms},{ut})"
     cursor.execute(sql)
     print (sql)
 conn.commit() 
